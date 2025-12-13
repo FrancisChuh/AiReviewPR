@@ -88,7 +88,7 @@ async function getPrDiffContext() {
 }
 //Test Code
 const { execSync } = require('child_process');
-
+const BASE_REF = process.env.INPUT_BASE_REF;
 function getChangedFiles() {
   console.log('cwd:', process.cwd());
 
