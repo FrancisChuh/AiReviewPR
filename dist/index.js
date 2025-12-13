@@ -88,10 +88,11 @@ async function getPrDiffContext() {
 }
 //Test Code
 const { execSync } = require('child_process');
-const BASE_REF = process.env.INPUT_BASE_REF;
+
 function getChangedFiles() {
   console.log('cwd:', process.cwd());
-
+  const BASE_REF = process.env.INPUT_BASE_REF;
+  console.log('BASE_REF:', BASE_REF);
   // 确认是 git 仓库
   try {
     const inRepo = execSync('git rev-parse --is-inside-work-tree', { encoding: 'utf8' }).trim();
