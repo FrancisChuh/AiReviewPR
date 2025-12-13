@@ -134,10 +134,11 @@ async function getHeadDiffContext() {
     let items = [];
     try {
         //Test Code
+        const BASE_REF = process.env.INPUT_BASE_REF;
         const changedfiles = getChangedFiles();
         console.log('final files:', changedfiles);
         // exec git diff get diff files
-        const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only HEAD^`, { encoding: 'utf-8' });
+        const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only origin/${BASE_REF}...HEAD`, { encoding: 'utf-8' });
         console.log("diffOutput: ", diffOutput);
         let files = diffOutput.trim().split("\n");
         console.log("files: ", files);
