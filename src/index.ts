@@ -135,6 +135,8 @@ async function aiCheckDiffContext() {
           model: model,
           system: process.env.INPUT_REVIEW_PROMPT
         })
+        console.log(useChinese ? "response：" : "response: ", response)
+        console.log(useChinese ? "response detail：" : "response.detail: ", response.detail)
         if (response.detail) { // noinspection ExceptionCaughtLocallyJS
           throw response.detail;
         }
