@@ -117,6 +117,7 @@ async function getHeadDiffContext() {
     return items;
 }
 async function aiCheckDiffContext() {
+    console.log(useChinese ? "run in aiCheckDiffContext：检查开始" : "run in aiCheckDiffContext: Start ai check")
     try {
         let commit_sha_url = `${process.env.GITHUB_SERVER_URL}/${process.env.INPUT_REPOSITORY}/src/commit/${process.env.GITHUB_SHA}`;
         let items = review_pull_request ? await getPrDiffContext() : await getHeadDiffContext();
@@ -133,6 +134,8 @@ async function aiCheckDiffContext() {
                     model: model,
                     system: process.env.INPUT_REVIEW_PROMPT
                 });
+                console.log(useChinese ? "response：" : "response: ", response)
+                console.log(useChinese ? "response detail：" : "response detail: ", response.detail)
                 if (response.detail) { // noinspection ExceptionCaughtLocallyJS
                     throw response.detail;
                 }
