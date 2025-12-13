@@ -113,7 +113,7 @@ function getChangedFiles() {
 
   try {
     // 使用 -z (NUL 分隔) 避免特殊文件名问题
-    const cmd = hasParent ? 'git diff --name-only origin/${BASE_REF}...HEAD`' : 'git ls-tree -r --name-only -z HEAD';
+    const cmd = hasParent ? 'git diff --name-only origin/${BASE_REF}...HEAD' : 'git ls-tree -r --name-only -z HEAD';
     console.log('running:', cmd);
     const out = execSync(cmd, { encoding: 'utf8' });
     console.log('raw output length:', out.length);
