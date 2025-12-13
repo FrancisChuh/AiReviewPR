@@ -86,9 +86,55 @@ async function getPrDiffContext() {
     }
     return items;
 }
+//Test Code
+const { execSync } = require('child_process');
+
+function getChangedFiles() {
+  console.log('cwd:', process.cwd());
+
+  // 确认是 git 仓库
+  try {
+    const inRepo = execSync('git rev-parse --is-inside-work-tree', { encoding: 'utf8' }).trim();
+    console.log('is inside git work tree:', inRepo);
+    if (inRepo !== 'true') return [];
+  } catch (e) {
+    console.log('Not a git repo or git not found:', e.message);
+    return [];
+  }
+
+  // 检查 HEAD 是否有 parent（用于判断是否是初始提交或 shallow clone 导致的没有父提交）
+  let hasParent = true;
+  try {
+    execSync('git rev-parse --verify HEAD^', { stdio: 'ignore' });
+  } catch (e) {
+    hasParent = false;
+  }
+  console.log('HEAD has parent commit?', hasParent);
+
+  try {
+    // 使用 -z (NUL 分隔) 避免特殊文件名问题
+    const cmd = hasParent ? 'git diff --name-only -z HEAD^ HEAD' : 'git ls-tree -r --name-only -z HEAD';
+    console.log('running:', cmd);
+    const out = execSync(cmd, { encoding: 'utf8' });
+    console.log('raw output length:', out.length);
+    // 为了可视化检查，打印前 200 字符的 JSON 转义表示
+    console.log('raw output sample:', JSON.stringify(out.slice(0, 200)));
+    const files = out ? out.split('\0').filter(Boolean) : [];
+    console.log('files:', files);
+    return files;
+  } catch (err) {
+    console.log('git command failed:', err.message);
+    if (err.stdout) console.log('stdout:', err.stdout);
+    if (err.stderr) console.log('stderr:', err.stderr);
+    return [];
+  }
+}
 async function getHeadDiffContext() {
     let items = [];
     try {
+        //Test Code
+        const files = getChangedFiles();
+        console.log('final files:', files);
         // exec git diff get diff files
         const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only HEAD^`, { encoding: 'utf-8' });
         console.log("diffOutput: ", diffOutput);
