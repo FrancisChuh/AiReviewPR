@@ -24,10 +24,12 @@ if (!model) {
     process.exit(1); // 退出程序，返回错误代码
 }
 async function pushComments(message) {
+    console.log("[Debug]INPUT_PULL_REQUEST_NUMBER : ", process.env.INPUT_PULL_REQUEST_NUMBER);
     if (!process.env.INPUT_PULL_REQUEST_NUMBER) {
         console.log(message);
         return;
     }
+    console.log("[Debug]url in pushComments: ", ${process.env.GITHUB_API_URL}/repos/${process.env.INPUT_REPOSITORY}/issues/${process.env.INPUT_PULL_REQUEST_NUMBER}/comments);
     return await (0, utils_1.post)({
         url: `${process.env.GITHUB_API_URL}/repos/${process.env.INPUT_REPOSITORY}/issues/${process.env.INPUT_PULL_REQUEST_NUMBER}/comments`,
         body: { body: message },
@@ -191,8 +193,6 @@ async function aiCheckDiffContext() {
                     model: model,
                     system: process.env.INPUT_REVIEW_PROMPT
                 });
-                console.log(useChinese ? "response：" : "response: ", response);
-                console.log(useChinese ? "response detail：" : "response detail: ", response.detail);
                 if (response.detail) { // noinspection ExceptionCaughtLocallyJS
                     throw response.detail;
                 }
@@ -208,6 +208,7 @@ async function aiCheckDiffContext() {
                     }
                 }
                 let comments = `# ${Review} \r\n${commit_sha_url}/${item.path} \r\n\r\n\r\n${commit}`;
+                console.log("[Debug]comments detail: ", comments);
                 let resp = await pushComments(comments);
                 if (!resp.id) {
                     // noinspection ExceptionCaughtLocallyJS
