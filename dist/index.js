@@ -29,7 +29,8 @@ async function pushComments(message) {
         console.log(message);
         return;
     }
-    console.log("[Debug]url in pushComments: ", ${process.env.GITHUB_API_URL}/repos/${process.env.INPUT_REPOSITORY}/issues/${process.env.INPUT_PULL_REQUEST_NUMBER}/comments);
+    const debugUrl = ${process.env.GITHUB_API_URL}/repos/${process.env.INPUT_REPOSITORY}/issues/${process.env.INPUT_PULL_REQUEST_NUMBER}/comments;
+    console.log("[Debug]url in pushComments: ", debugUrl);
     return await (0, utils_1.post)({
         url: `${process.env.GITHUB_API_URL}/repos/${process.env.INPUT_REPOSITORY}/issues/${process.env.INPUT_PULL_REQUEST_NUMBER}/comments`,
         body: { body: message },
