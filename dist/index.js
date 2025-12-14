@@ -88,7 +88,7 @@ async function getPrDiffContext() {
     }
     return items;
 }
-//Test Code
+//Test Debug Code
 const { execSync } = require('child_process');
 
 function getChangedFiles() {
@@ -135,15 +135,15 @@ function getChangedFiles() {
 async function getHeadDiffContext() {
     let items = [];
     try {
-        //Test Code
-        const BASE_REF = process.env.INPUT_BASE_REF;
-        const changedfiles = getChangedFiles();
-        console.log('final files:', changedfiles);
+        //Debug Code
+        //const BASE_REF = process.env.INPUT_BASE_REF;
+        //const changedfiles = getChangedFiles();
+        //console.log('[Debug]final files:', changedfiles);
         // exec git diff get diff files
-        const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only origin/${BASE_REF}...HEAD`, { encoding: 'utf-8' });
-        console.log("diffOutput: ", diffOutput);
+        const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only HEAD~1`, { encoding: 'utf-8' });
+        console.log("[Debug]diffOutput: ", diffOutput);
         let files = diffOutput.trim().split("\n");
-        console.log("files: ", files);
+        console.log("[Debug]files: ", files);
         for (let key in files) {
             // noinspection DuplicatedCode
             if (!files[key])
@@ -156,7 +156,7 @@ async function getHeadDiffContext() {
                 console.log("exclude(exclude):", files[key]);
                 continue;
             }
-            const fileDiffOutput = (0, node_child_process_1.execSync)(`git diff origin/${BASE_REF}...HEAD -- "${files[key]}"`, { encoding: 'utf-8' });
+            const fileDiffOutput = (0, node_child_process_1.execSync)(`git diff HEAD~1 -- "${files[key]}"`, { encoding: 'utf-8' });
             items.push({
                 path: files[key],
                 context: fileDiffOutput,
@@ -169,7 +169,7 @@ async function getHeadDiffContext() {
     return items;
 }
 async function aiCheckDiffContext() {
-    console.log(useChinese ? "run in aiCheckDiffContext：检查开始" : "run in aiCheckDiffContext: Start ai check");
+    console.log(useChinese ? "[Debug]进入函数 aiCheckDiffContext：检查AI开始" : "[Debug]run into func aiCheckDiffContext: Start AI Check");
     try {
         let commit_sha_url = `${process.env.GITHUB_SERVER_URL}/${process.env.INPUT_REPOSITORY}/src/commit/${process.env.GITHUB_SHA}`;
         let items = review_pull_request ? await getPrDiffContext() : await getHeadDiffContext();
