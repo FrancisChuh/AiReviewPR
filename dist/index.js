@@ -171,10 +171,12 @@ async function aiCheckDiffContext() {
     try {
         let commit_sha_url = `${process.env.GITHUB_SERVER_URL}/${process.env.INPUT_REPOSITORY}/src/commit/${process.env.GITHUB_SHA}`;
         let items = review_pull_request ? await getPrDiffContext() : await getHeadDiffContext();
+        console.log("[Debug]items：", items);
         for (let key in items) {
             if (!items[key])
                 continue;
             let item = items[key];
+            console.log("[Debug]items in for：", items);
             // ai generate
             console.log("[Debug]url：", url);
             console.log("[Debug]token：", process.env.INPUT_AI_TOKEN);
