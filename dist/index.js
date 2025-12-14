@@ -176,6 +176,11 @@ async function aiCheckDiffContext() {
                 continue;
             let item = items[key];
             // ai generate
+            console.log("[Debug]url：", url);
+            console.log("[Debug]token：", process.env.INPUT_AI_TOKEN);
+            console.log("[Debug]prompt：", item.context);
+            console.log("[Debug]model：", model);
+            console.log("[Debug]system：", process.env.INPUT_REVIEW_PROMPT);
             try {
                 let response = await aiGenerate({
                     host: url,
