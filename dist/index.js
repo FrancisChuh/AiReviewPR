@@ -154,7 +154,7 @@ async function getHeadDiffContext() {
                 console.log("exclude(exclude):", files[key]);
                 continue;
             }
-            const fileDiffOutput = (0, node_child_process_1.execSync)(`git diff HEAD^ -- "${files[key]}"`, { encoding: 'utf-8' });
+            const fileDiffOutput = (0, node_child_process_1.execSync)(`git diff origin/${BASE_REF}...HEAD -- "${files[key]}"`, { encoding: 'utf-8' });
             items.push({
                 path: files[key],
                 context: fileDiffOutput,
