@@ -38,23 +38,33 @@ async function pushComments(message) {
     });
 }
 async function aiGenerate({ host, token, prompt, model, system }) {
+    let endpoint = host;
+    if (!endpoint.endsWith("/")) {
+        endpoint += "/";
+    }
+    // Try to adapt to standard OpenAI Base URL format
+    if (!endpoint.includes("/v1/")) {
+        endpoint += "v1/";
+    }
+    endpoint += "chat/completions";
+    console.log(`[DEBUG] aiGenerate calling endpoint: ${endpoint}, model: ${model}`);
     const data = JSON.stringify({
-        prompt: prompt,
         model: model,
-        stream: false,
-        system: system || system_prompt,
-        options: {
-            tfs_z: 1.5,
-            top_k: 30,
-            top_p: 0.8,
-            temperature: 0.7,
-            num_ctx: 10240,
-        }
+        messages: [
+            { role: "system", content: system || system_prompt },
+            { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        top_p: 1,
     });
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
     return await (0, utils_1.post)({
-        url: `${host}/api/generate`,
+        url: endpoint,
         body: data,
-        header: { 'Authorization': token ? `Bearer ${token}` : "", }
+        header: headers
     });
 }
 async function getPrDiffContext() {
@@ -141,8 +151,8 @@ async function getHeadDiffContext() {
         //const changedfiles = getChangedFiles();
         //console.log('[Debug]final files:', changedfiles);
         // exec git diff get diff files
-        const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only HEAD~1`, { encoding: 'utf-8' });
-        console.log("[Debug]diffOutput: ", diffOutput);
+        const diffCommand = process.platform === 'win32' ? 'HEAD~1' : 'HEAD^';
+        const diffOutput = (0, node_child_process_1.execSync)(`git diff --name-only ${diffCommand}`, { encoding: 'utf-8' });
         let files = diffOutput.trim().split("\n");
         console.log("[Debug]files: ", files);
         for (let key in files) {
@@ -157,7 +167,7 @@ async function getHeadDiffContext() {
                 console.log("exclude(exclude):", files[key]);
                 continue;
             }
-            const fileDiffOutput = (0, node_child_process_1.execSync)(`git diff HEAD~1 -- "${files[key]}"`, { encoding: 'utf-8' });
+            const fileDiffOutput = (0, node_child_process_1.execSync)(`git diff ${diffCommand} -- "${files[key]}"`, { encoding: 'utf-8' });
             items.push({
                 path: files[key],
                 context: fileDiffOutput,
@@ -179,7 +189,7 @@ async function aiCheckDiffContext() {
             if (!items[key])
                 continue;
             let item = items[key];
-            console.log("[Debug]items in for：", items);
+            console.log(`[DEBUG] Reviewing file: ${item.path}`);
             // ai generate
             console.log("[Debug]url：", url);
             console.log("[Debug]token：", process.env.INPUT_AI_TOKEN);
@@ -192,21 +202,23 @@ async function aiCheckDiffContext() {
                     token: process.env.INPUT_AI_TOKEN,
                     prompt: item.context,
                     model: model,
-                    system: process.env.INPUT_REVIEW_PROMPT
+                    system: system_prompt
                 });
-                if (response.detail) { // noinspection ExceptionCaughtLocallyJS
-                    throw response.detail;
-                }
-                if (!response.response) { // noinspection ExceptionCaughtLocallyJS
-                    throw "ollama error";
+                if (!response.choices || response.choices.length === 0 || !response.choices[0].message) {
+                    console.error("OpenAI response error:", response);
+                    throw "OpenAI/Ollama response error";
                 }
                 let Review = useChinese ? "审核结果" : "Review";
-                let commit = response.response;
-                if (commit.indexOf("```markdown") === 0) {
-                    commit = commit.substring("```markdown".length);
-                    if (commit.lastIndexOf("```") === commit.length - 3) {
-                        commit = commit.substring(0, commit.length - 3);
-                    }
+                let commit = response.choices[0].message.content;
+                // Greedy parsing: Try to strip markdown code block wrapper if present
+                commit = commit.trim();
+                const match = commit.match(/^```(markdown)?\s*([\s\S]*?)\s*```$/i);
+                if (match) {
+                    commit = match[2].trim();
+                }
+                if (commit === "LGTM") {
+                    console.log(`[INFO] No issues found for ${item.path} (LGTM). Skipping comment.`);
+                    continue;
                 }
                 let comments = `# ${Review} \r\n${commit_sha_url}/${item.path} \r\n\r\n\r\n${commit}`;
                 console.log("[Debug]comments detail: ", comments);
